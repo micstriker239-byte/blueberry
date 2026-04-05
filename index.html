@@ -12,6 +12,7 @@ body {
   margin: 0;
 }
 h1 { margin-top: 10px; }
+
 #boardContainer {
   width: 100%;
   height: 80vh;
@@ -19,11 +20,13 @@ h1 { margin-top: 10px; }
   display: flex;
   justify-content: center;
 }
+
 #board {
   display: grid;
   margin-top: 20px;
   grid-auto-rows: 20px;
 }
+
 .cell {
   width: 20px;
   height: 20px;
@@ -34,23 +37,20 @@ h1 { margin-top: 10px; }
   cursor: pointer;
   font-weight: bold;
   user-select: none;
-  background-image: url('image.png'); /* local image in root folder */
+  background-image: url('image.png');
   background-size: cover;
-  background-position: center;
 }
+
 .cell.revealed {
   background: #bbb !important;
   color: black;
-  cursor: default;
   background-image: none;
 }
-.cell.mine {
-  background: red !important;
-}
-.cell.flag {
-  background: orange !important;
-}
-#deathScreen {
+
+.cell.mine { background: red !important; }
+.cell.flag { background: orange !important; }
+
+#deathScreen, #winScreen {
   position: fixed;
   top: 0;
   left: 0;
@@ -63,49 +63,75 @@ h1 { margin-top: 10px; }
   flex-direction: column;
   z-index: 999;
 }
+
 #deathScreen img {
   max-width: 300px;
   border-radius: 20px;
 }
-#deathScreen h2 {
-  color: red;
+
+#winScreen video {
+  max-width: 400px;
+  border-radius: 20px;
+}
+
+h2 {
   margin-top: 20px;
   font-size: 40px;
 }
-#retryBtn {
+
+#retryBtn, #codeBtn {
   margin-top: 20px;
   padding: 10px 20px;
   font-size: 18px;
   cursor: pointer;
   border: none;
   border-radius: 10px;
-  background: white;
 }
 </style>
 </head>
+
 <body>
+
 <h1>Minesweeper</h1>
 <button onclick="init()">Restart</button>
+<button id="codeBtn" onclick="enterCode()">Enter Code</button>
+
 <div id="boardContainer">
   <div id="board"></div>
 </div>
+
+<!-- DEATH SCREEN -->
 <div id="deathScreen">
-  <img src="image.png" alt="death"> <!-- local image -->
-  <h2>YOU DIED</h2>
+  <img src="image.png">
+  <h2 style="color:red;">YOU DIED</h2>
   <button id="retryBtn" onclick="init()">Retry</button>
+</div>
+
+<!-- WIN SCREEN -->
+<div id="winScreen">
+  <video autoplay loop controls>
+    <source src="win.mp4" type="video/mp4">
+  </video>
+  <h2 style="color:lime;">YOU WIN 🎉</h2>
+  <button onclick="init()">Play Again</button>
 </div>
 
 <script>
 const rows = 100;
 const cols = 100;
 const minesCount = Math.floor(rows * cols * 0.15);
+
 let board = [];
 let mineLocations = new Set();
+
+const secretCode = "1234"; // CHANGE THIS
 
 function init() {
   board = [];
   mineLocations.clear();
+
   document.getElementById("deathScreen").style.display = "none";
+  document.getElementById("winScreen").style.display = "none";
 
   const boardDiv = document.getElementById("board");
   boardDiv.innerHTML = "";
@@ -152,6 +178,7 @@ function clickCell(e) {
   if (cell.classList.contains("revealed") || cell.classList.contains("flag")) return;
 
   const key = `${r}-${c}`;
+
   if (mineLocations.has(key)) {
     cell.classList.add("mine");
     cell.textContent = "💣";
@@ -167,7 +194,9 @@ function clickCell(e) {
 function rightClickCell(e) {
   e.preventDefault();
   const cell = e.target;
+
   if (cell.classList.contains("revealed")) return;
+
   if (cell.classList.contains("flag")) {
     cell.classList.remove("flag");
     cell.textContent = "";
@@ -191,13 +220,16 @@ function countMines(r, c) {
 
 function floodFill(r, c) {
   const queue = [[r, c]];
+
   while (queue.length) {
     const [cr, cc] = queue.shift();
     const cell = board[cr][cc];
+
     if (cell.classList.contains("revealed")) continue;
 
     const count = countMines(cr, cc);
     cell.classList.add("revealed");
+
     if (count > 0) {
       cell.textContent = count;
     } else {
@@ -205,9 +237,12 @@ function floodFill(r, c) {
         for (let dc = -1; dc <= 1; dc++) {
           const nr = cr + dr;
           const nc = cc + dc;
+
           if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
             const neighbor = board[nr][nc];
-            if (!neighbor.classList.contains("revealed")) queue.push([nr, nc]);
+            if (!neighbor.classList.contains("revealed")) {
+              queue.push([nr, nc]);
+            }
           }
         }
       }
@@ -225,20 +260,32 @@ function revealAll() {
 }
 
 function checkWin() {
-  let unrevealed = 0;
+  let remaining = 0;
+
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (!board[r][c].classList.contains("revealed") && !mineLocations.has(`${r}-${c}`)) {
-        unrevealed++;
+        remaining++;
       }
     }
   }
-  if (unrevealed === 0) {
-    alert("YOU WIN!");
+
+  if (remaining === 0) {
+    document.getElementById("winScreen").style.display = "flex";
+  }
+}
+
+function enterCode() {
+  const input = prompt("Enter secret code:");
+  if (input === secretCode) {
+    document.getElementById("winScreen").style.display = "flex";
+  } else {
+    alert("Wrong code.");
   }
 }
 
 init();
 </script>
+
 </body>
 </html>
