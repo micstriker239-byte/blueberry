@@ -39,6 +39,8 @@ h1 { margin-top: 10px; }
   user-select: none;
   background-image: url('image.png');
   background-size: cover;
+  background-position: center; /* CENTER THE IMAGE */
+  background-repeat: no-repeat;
 }
 
 .cell.revealed {
@@ -124,7 +126,8 @@ const minesCount = Math.floor(rows * cols * 0.15);
 let board = [];
 let mineLocations = new Set();
 
-const secretCode = "borntodillydallalforcedtolockin"; // CHANGE THIS
+// UPDATED SECRET CODE
+const secretCode = "borntodillydallalforcedtolockin";
 
 function init() {
   board = [];
